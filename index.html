@@ -21,14 +21,13 @@
         body[data-wallpaper="magic"] { background: radial-gradient(circle at 50% 50%, rgba(20,0,40,0.9), #000); }
         body[data-wallpaper="stars"] { background: radial-gradient(circle at top, #0b1021, #000); }
         body[data-accent="silver"] { --accent: #B0BEC5; --accent-glow: rgba(176,190,197,0.6); }
-        body[data-accent="bronze"] { --accent: #CD7F32; --accent-glow: rgba(205, 127, 50, 0.6); }
 
-        /* 機能の非表示設定 */
+        /* 非表示用クラス */
         body.hide-check .action-btn-check { display: none !important; }
         body.hide-rem .action-btn-rem { display: none !important; }
         body.hide-count .c-countdown { display: none !important; }
 
-        body { font-family: 'Cinzel', 'Noto Serif JP', serif; color: var(--text-main); margin: 0; min-height: 100vh; transition: background 0.8s ease; }
+        body { font-family: 'Cinzel', 'Noto Serif JP', serif; color: var(--text-main); margin: 0; min-height: 100vh; transition: background 0.8s; }
         header { position: sticky; top: 0; z-index: 100; padding: calc(15px + var(--sa-top)) 20px 15px; background: rgba(0,0,0,0.95); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-size: 1.4rem; color: var(--accent); letter-spacing: 0.1em; text-shadow: 0 0 10px var(--accent-glow); }
         .hdr-tools { display: flex; gap: 12px; }
@@ -39,18 +38,10 @@
         .nav-tab.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
 
         .dashboard { padding: 0 20px calc(50px + var(--sa-bottom)); display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        
-        /* カードデザイン（全体をクリック可能に） */
-        .event-card { 
-            background: var(--surface); border: 1px solid var(--rust); padding: 20px; border-radius: 8px; 
-            position: relative; display: flex; flex-direction: column; gap: 8px; 
-            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
-        }
+        .event-card { background: var(--surface); border: 1px solid var(--rust); padding: 20px; border-radius: 8px; position: relative; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: 0.2s; }
         .event-card:active { transform: scale(0.98); }
         .game-monst { border-left: 4px solid var(--monst-red); }
         .game-dokkan { border-left: 4px solid var(--dokkan-yellow); }
-        
-        /* クリア状態 */
         .event-card.cleared { filter: grayscale(0.8) brightness(0.4); opacity: 0.6; }
         .clear-mark { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 3rem; color: rgba(255,255,255,0.1); font-weight: 900; pointer-events: none; z-index: 1; }
         .event-card.cleared .clear-mark { display: block; }
@@ -58,13 +49,12 @@
         .e-header { display: flex; justify-content: space-between; align-items: flex-start; z-index: 2; }
         .e-type { font-size: 0.7rem; color: var(--accent); letter-spacing: 1px; }
         .action-btns { display: flex; gap: 8px; }
-        .action-btn { background: none; border: 1px solid var(--rust); color: var(--silver); padding: 6px 10px; cursor: pointer; border-radius: 4px; font-size: 1rem; position: relative; z-index: 10; }
+        .action-btn { background: none; border: 1px solid var(--rust); color: var(--silver); padding: 6px; cursor: pointer; border-radius: 4px; font-size: 1rem; position: relative; z-index: 10; }
         .action-btn.active { border-color: var(--accent); color: var(--accent); }
 
-        .e-title { font-size: 1.1rem; font-weight: bold; z-index: 2; }
+        .e-title { font-size: 1.1rem; font-weight: bold; }
         .has-memo-indicator { color: var(--accent); font-size: 0.8rem; margin-left: 5px; }
-
-        .e-desc { font-size: 0.8rem; color: var(--silver); line-height: 1.4; z-index: 2; }
+        .e-desc { font-size: 0.8rem; color: var(--silver); line-height: 1.4; }
         .e-footer { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; margin-top: auto; display: flex; justify-content: flex-end; }
         .c-countdown { font-family: monospace; font-size: 0.9rem; color: var(--accent); }
 
@@ -78,6 +68,8 @@
         .img-prev { width: 100%; min-height: 100px; border: 1px dashed var(--rust); margin-bottom: 15px; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         .img-prev img { max-width: 100%; border: 1px solid var(--accent); }
         .file-label { display: block; background: var(--rust); color: #fff; padding: 15px; text-align: center; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body data-wallpaper="stone" data-accent="gold">
@@ -102,39 +94,29 @@
 
     <div class="sheet" id="settingsSheet">
         <div class="sheet-title">PORTAL SETTINGS</div>
-        <div style="font-size: 0.8rem; color: var(--accent); margin-bottom: 5px;">ポータルの銘 (Portal Title)</div>
-        <input type="text" id="inputPortalName" style="width:100%; background:#000; border:1px solid var(--rust); color:var(--accent); padding:10px; margin-bottom:20px;" placeholder="名前を入力...">
-
-        <div style="font-size: 0.8rem; color: var(--accent); margin-bottom: 10px;">機能の表示設定</div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <label style="display:flex; justify-content:space-between;">制覇機能 (✅) <input type="checkbox" id="tog-check" checked></label>
-            <label style="display:flex; justify-content:space-between;">神託リマインド (🔔) <input type="checkbox" id="tog-rem" checked></label>
-            <label style="display:flex; justify-content:space-between;">カウントダウン <input type="checkbox" id="tog-count" checked></label>
+        <input type="text" id="inputPortalName" style="width:100%; background:#000; border:1px solid var(--rust); color:var(--accent); padding:10px; margin-bottom:20px;">
+        <div class="toggle-row"><span>制覇機能 (✅)</span><input type="checkbox" id="tog-check" checked></div>
+        <div class="toggle-row"><span>神託リマインド (🔔)</span><input type="checkbox" id="tog-rem" checked></div>
+        <div class="toggle-row"><span>カウントダウン</span><input type="checkbox" id="tog-count" checked></div>
+        <div style="margin-top:20px; display:flex; gap:5px; flex-wrap:wrap;">
+            <button class="nav-tab bg-btn" data-bg="trueblack">漆黒</button>
+            <button class="nav-tab bg-btn" data-bg="stone">石壁</button>
+            <button class="nav-tab bg-btn" data-bg="magic">魔法陣</button>
         </div>
-
-        <div style="font-size: 0.8rem; color: var(--accent); margin: 20px 0 10px;">壁紙 (Wallpaper)</div>
-        <div style="display:flex; gap:5px; flex-wrap:wrap;">
-            <button class="st-btn bg-btn" data-bg="trueblack">漆黒</button>
-            <button class="st-btn bg-btn" data-bg="stone">石壁</button>
-            <button class="st-btn bg-btn" data-bg="magic">魔法陣</button>
-            <button class="st-btn bg-btn" data-bg="stars">星空</button>
-        </div>
-        <button onclick="resetPortalData()" style="width:100%; background:none; border:1px solid var(--danger); color:var(--danger); padding:10px; margin-top:20px; border-radius:4px;">ポータルの記録を初期化</button>
+        <button onclick="resetPortalData()" style="width:100%; background:none; border:1px solid var(--danger); color:var(--danger); padding:10px; margin-top:20px;">初期化</button>
     </div>
 
     <div class="sheet" id="memoSheet">
         <div class="sheet-title" id="memoTitle">戦術の書</div>
         <textarea id="memoText" class="memo-area" placeholder="攻略パーティやメモを記せ..."></textarea>
         <div id="imagePreview" class="img-prev">画像なし</div>
-        <label class="file-label" style="background:var(--rust); margin-bottom:10px;">🖼 画像を捧げる<input type="file" id="imageInput" style="display:none" accept="image/*"></label>
-        <button onclick="saveMemo()" style="width:100%; background:var(--accent); color:#000; border:none; padding:15px; font-weight:bold; border-radius:4px;">刻む (Save)</button>
-        <button onclick="removeImage()" style="background:none; border:1px solid var(--danger); color:var(--danger); width:100%; margin-top:10px; padding:10px; border-radius:4px;">画像を消去</button>
+        <label class="file-label">🖼 画像を捧げる<input type="file" id="imageInput" style="display:none" accept="image/*"></label>
+        <button onclick="saveMemo()" style="width:100%; background:var(--accent); color:#000; border:none; padding:15px; font-weight:bold; border-radius:4px; margin-top:10px;">刻む (Save)</button>
+        <button onclick="removeImage()" style="background:none; border:1px solid var(--danger); color:var(--danger); width:100%; margin-top:10px; padding:10px;">画像を消去</button>
     </div>
 
     <script>
-        // ==========================================
-        // 1. 共通データ
-        // ==========================================
+        // 1. 事象データ (最新分)
         const initialEvents = [
             { id: 'gen_8hxkd', game: 'monst', type: 'イベント', title: '招待キャンペーン', start: '2026-03-29T04:00:00', end: '2026-04-30T03:59:00', desc: '初回だとエステルの運極を確保できる！ 全５人まで招待可能！' },
             { id: 'gen_mcvlw', game: 'monst', type: 'ガチャ', title: '毎日弾いて選んで！フェイバリットガチャ', start: '2026-04-10T12:00:00', end: '2026-04-20T03:59:00', desc: '毎日10連して選んだ５属性それぞれを最終日に獲得できる。' },
@@ -144,8 +126,8 @@
             { id: 'gen_f4b9s', game: 'monst', type: 'イベント', title: '破壊の星墓', start: '2026-03-27T12:00:00', end: '2026-04-21T11:59:00', desc: '現状最難関コンテンツ。報酬は豪華！' },
             { id: 'gen_w68pw', game: 'monst', type: 'クエスト', title: '未開の砂宮', start: '2026-04-14T12:00:00', end: '2026-04-29T11:59:00', desc: '少し難易度の高いコンテンツ。' },
             { id: 'gen_qgf1b', game: 'monst', type: 'キャンペーン', title: '英雄の神殿', start: '2026-04-13T00:00:00', end: '2026-04-14T23:59:00', desc: 'ノーコン報酬のわくわくの実が２個確定！' },
-            { id: 'gen_0aikv', game: 'monst', type: 'キャンペーン', title: '追憶の書庫', start: '2026-04-13T00:00:00', end: '2026-04-20T23:59:00', desc: '書庫ポイントの消費が半分！' }
-                  { id: 'gen_60uth', game: 'dokkan', type: 'クエスト', title: 'ガチバトル２', start: '2026-04-14T14:00:00', end: '2026-04-18T00:00:00', desc: '強敵を倒すと豪華報酬！※無期限開催' },
+            { id: 'gen_0aikv', game: 'monst', type: 'キャンペーン', title: '追憶の書庫', start: '2026-04-13T00:00:00', end: '2026-04-20T23:59:00', desc: '書庫ポイントの消費が半分！' },
+          { id: 'gen_60uth', game: 'dokkan', type: 'クエスト', title: 'ガチバトル２', start: '2026-04-14T14:00:00', end: '2026-04-18T00:00:00', desc: '強敵を倒すと豪華報酬！※無期限開催' },
             { id: 'gen_dw92b', game: 'dokkan', type: 'クエスト', title: 'ドッカンフロンティア　ナメック星編', start: '2026-04-14T17:00:00', end: '2026-04-18T00:00:00', desc: '強敵を倒すと豪華報酬！※無期限開催' },
             { id: 'gen_ory6u', game: 'dokkan', type: 'クエスト', title: '極限Zバトル　ラディッツ', start: '2026-04-08T17:00:00', end: '2026-04-13T15:56:51', desc: '新たなイベント登場！' },
             { id: 'gen_dlbz9', game: 'dokkan', type: 'クエスト', title: '極限スーパーバトルロード', start: '2026-04-08T17:00:00', end: '2026-04-18T00:00:00', desc: '新たなステージ登場！※無期限開催' },
@@ -153,29 +135,23 @@
 
         ];
 
-        // ==========================================
         // 2. 状態管理
-        // ==========================================
         let state = {
             portalName: localStorage.getItem('oa_hard_name') || 'OATH & ABYSS',
             cleared: JSON.parse(localStorage.getItem('oa_hard_cleared') || '[]'),
             memos: JSON.parse(localStorage.getItem('oa_hard_memos') || '{}'),
             wallpaper: localStorage.getItem('oa_hard_bg') || 'stone',
-            accent: localStorage.getItem('oa_hard_acc') || 'gold',
             currentTab: 'all', isArchive: false, activeId: null, tempImg: null
         };
 
-        const saveAll = () => {
+        const save = () => {
             localStorage.setItem('oa_hard_name', state.portalName);
             localStorage.setItem('oa_hard_cleared', JSON.stringify(state.cleared));
             localStorage.setItem('oa_hard_memos', JSON.stringify(state.memos));
             localStorage.setItem('oa_hard_bg', state.wallpaper);
-            localStorage.setItem('oa_hard_acc', state.accent);
         };
 
-        // ==========================================
-        // 3. メイン処理
-        // ==========================================
+        // 3. レンダリング
         function render() {
             const grid = document.getElementById('eventGrid');
             grid.innerHTML = ''; const now = new Date();
@@ -192,10 +168,7 @@
                 const hasMemo = !!state.memos[ev.id] && (state.memos[ev.id].text || state.memos[ev.id].img);
                 const card = document.createElement('article');
                 card.className = `event-card game-${ev.game} ${isCleared ? 'cleared' : ''}`;
-                
-                // カード全体クリックでメモを開く
                 card.onclick = () => openMemo(ev.id, ev.title);
-
                 card.innerHTML = `
                     <div class="clear-mark">FINISHED</div>
                     <div class="e-header">
@@ -214,48 +187,25 @@
             updateTimers();
         }
 
-        // 機能オンオフの適用
+        // 各種機能
         ['check', 'rem', 'count'].forEach(f => {
             const tog = document.getElementById(`tog-${f}`);
             tog.checked = localStorage.getItem(`oa_show_${f}`) !== 'false';
             if(!tog.checked) document.body.classList.add(`hide-${f}`);
-            tog.onchange = (e) => { 
-                localStorage.setItem(`oa_show_${f}`, e.target.checked); 
-                document.body.classList.toggle(`hide-${f}`, !e.target.checked); 
-            };
+            tog.onchange = (e) => { localStorage.setItem(`oa_show_${f}`, e.target.checked); document.body.classList.toggle(`hide-${f}`, !e.target.checked); };
         });
 
-        const applySettings = () => {
-            document.getElementById('portalLogo').innerText = state.portalName;
-            document.getElementById('inputPortalName').value = state.portalName;
-            document.body.setAttribute('data-wallpaper', state.wallpaper);
-            document.body.setAttribute('data-accent', state.accent);
-        };
-
-        // 各種ハンドラ
         document.getElementById('btn-settings').onclick = () => { document.getElementById('overlay').style.display='block'; document.getElementById('settingsSheet').classList.add('active'); };
         document.getElementById('btn-archive').onclick = function() { state.isArchive = !state.isArchive; this.classList.toggle('active', state.isArchive); render(); };
-        document.getElementById('inputPortalName').oninput = (e) => { state.portalName = e.target.value || 'OATH & ABYSS'; document.getElementById('portalLogo').innerText = state.portalName; saveAll(); };
-        document.querySelectorAll('.bg-btn').forEach(b => b.onclick = (e) => { state.wallpaper = e.target.dataset.bg; saveAll(); applySettings(); });
+        document.getElementById('inputPortalName').oninput = (e) => { state.portalName = e.target.value; document.getElementById('portalLogo').innerText = e.target.value; save(); };
+        document.querySelectorAll('.bg-btn').forEach(b => b.onclick = (e) => { state.wallpaper = e.target.dataset.bg; document.body.setAttribute('data-wallpaper', e.target.dataset.bg); save(); });
 
         function closeAllSheets() { document.getElementById('overlay').style.display='none'; document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active')); }
         function filter(tab) { state.currentTab = tab; state.isArchive = false; document.getElementById('btn-archive').classList.remove('active'); document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.id === `tab-${tab}`)); render(); }
-        function toggleClear(id) { const idx = state.cleared.indexOf(id); if (idx > -1) state.cleared.splice(idx, 1); else state.cleared.push(id); saveAll(); render(); }
-        
-        function openMemo(id, title) {
-            state.activeId = id; 
-            const data = state.memos[id] || { text: '', img: null };
-            document.getElementById('memoTitle').innerText = title;
-            document.getElementById('memoText').value = data.text;
-            state.tempImg = data.img;
-            refreshImgPrev();
-            document.getElementById('overlay').style.display = 'block';
-            document.getElementById('memoSheet').classList.add('active');
-        }
-
-        function saveMemo() { state.memos[state.activeId] = { text: document.getElementById('memoText').value, img: state.tempImg }; saveAll(); closeAllSheets(); render(); }
+        function toggleClear(id) { const idx = state.cleared.indexOf(id); if (idx > -1) state.cleared.splice(idx, 1); else state.cleared.push(id); save(); render(); }
+        function openMemo(id, title) { state.activeId = id; const data = state.memos[id] || { text: '', img: null }; document.getElementById('memoTitle').innerText = title; document.getElementById('memoText').value = data.text; state.tempImg = data.img; refreshImgPrev(); document.getElementById('overlay').style.display = 'block'; document.getElementById('memoSheet').classList.add('active'); }
+        function saveMemo() { state.memos[state.activeId] = { text: document.getElementById('memoText').value, img: state.tempImg }; save(); closeAllSheets(); render(); }
         function refreshImgPrev() { document.getElementById('imagePreview').innerHTML = state.tempImg ? `<img src="${state.tempImg}">` : "画像なし"; }
-        
         document.getElementById('imageInput').onchange = function(e) {
             const file = e.target.files[0]; if(!file) return;
             const reader = new FileReader(); reader.onload = (ev) => {
@@ -268,7 +218,7 @@
             }; reader.readAsDataURL(file);
         };
         function removeImage() { state.tempImg = null; refreshImgPrev(); }
-        function addReminder(title, end) { const fD = (d) => new Date(d).toISOString().replace(/-|:|\.\d\d\d/g, ""); window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fD(new Date(new Date(end).getTime()-1800000))}/${fD(end)}`, '_blank'); }
+        function addReminder(title, end) { window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${new Date(new Date(end).getTime()-1800000).toISOString().replace(/-|:|\.\d\d\d/g, "")}/${new Date(end).toISOString().replace(/-|:|\.\d\d\d/g, "")}`, '_blank'); }
         function updateTimers() {
             const now = new Date(); document.querySelectorAll('.c-countdown').forEach(el => {
                 const diff = new Date(el.dataset.end) - now; if(diff <= 0) { el.innerText = "ENDED"; return; }
@@ -276,9 +226,12 @@
                 el.innerText = `${d}d ${h}:${m}:${s}`;
             });
         }
-        function resetPortalData() { if(confirm("全記録を初期化しますか？")) { localStorage.clear(); location.reload(); } }
-
-        setInterval(updateTimers, 1000); applySettings(); render();
+        function resetPortalData() { if(confirm("初期化しますか？")) { localStorage.clear(); location.reload(); } }
+        
+        document.getElementById('portalLogo').innerText = state.portalName;
+        document.getElementById('inputPortalName').value = state.portalName;
+        document.body.setAttribute('data-wallpaper', state.wallpaper);
+        setInterval(updateTimers, 1000); render();
     </script>
 </body>
 </html>
