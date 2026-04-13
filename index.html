@@ -5,88 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>My Portal - 究極のイベント目録</title>
+    <title>OATH & ABYSS - 究極のポータル</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* =========================================
-           1. ダークファンタジーデザイン
-        ========================================= */
         :root {
-            --bg-base: #030305;
-            --surface: rgba(18, 18, 22, 0.9);
-            --text-main: #E5E7EB;
-            --silver: #9CA3AF;
-            --rust: #5A3A22;
-            --danger: #ff4d4d;
-            --accent: #C5A059; 
-            --accent-glow: rgba(197, 160, 89, 0.6);
-            --monst-red: #8B0000;
-            --dokkan-yellow: #DAA520;
-            --sa-top: env(safe-area-inset-top, 0px);
-            --sa-bottom: env(safe-area-inset-bottom, 0px);
+            --bg-base: #030305; --surface: rgba(18, 18, 22, 0.9); --text-main: #E5E7EB;
+            --silver: #9CA3AF; --rust: #5A3A22; --danger: #ff4d4d; --accent: #C5A059; 
+            --accent-glow: rgba(197, 160, 89, 0.6); --monst-red: #8B0000; --dokkan-yellow: #DAA520;
+            --sa-top: env(safe-area-inset-top, 0px); --sa-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        body {
-            font-family: 'Cinzel', 'Noto Serif JP', serif;
-            color: var(--text-main);
-            background-color: var(--bg-base);
-            background: radial-gradient(circle at center, #111 0%, #000 100%);
-            margin: 0;
-            min-height: 100vh;
-        }
+        /* 壁紙設定 */
+        body[data-wallpaper="stone"] { background: radial-gradient(circle at center, #111 0%, #000 100%); }
+        body[data-wallpaper="trueblack"] { background: #000000; }
+        body[data-wallpaper="magic"] { background: radial-gradient(circle at 50% 50%, rgba(20,0,40,0.9), #000); }
+        body[data-wallpaper="stars"] { background: radial-gradient(circle at top, #0b1021, #000); }
+        body[data-accent="silver"] { --accent: #B0BEC5; --accent-glow: rgba(176,190,197,0.6); }
+        body[data-accent="bronze"] { --accent: #CD7F32; --accent-glow: rgba(205, 127, 50, 0.6); }
 
-        header {
-            position: sticky; top: 0; z-index: 100;
-            padding: calc(15px + var(--sa-top)) 20px 15px;
-            background: rgba(0,0,0,0.9);
-            border-bottom: 1px solid #333;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        /* 機能の非表示設定 */
+        body.hide-check .action-btn-check { display: none !important; }
+        body.hide-rem .action-btn-rem { display: none !important; }
+        body.hide-count .c-countdown { display: none !important; }
+
+        body { font-family: 'Cinzel', 'Noto Serif JP', serif; color: var(--text-main); margin: 0; min-height: 100vh; transition: background 0.8s ease; }
+        header { position: sticky; top: 0; z-index: 100; padding: calc(15px + var(--sa-top)) 20px 15px; background: rgba(0,0,0,0.95); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-size: 1.4rem; color: var(--accent); letter-spacing: 0.1em; text-shadow: 0 0 10px var(--accent-glow); }
+        .hdr-tools { display: flex; gap: 12px; }
+        .hdr-icon { background: none; border: none; font-size: 1.3rem; color: var(--accent); cursor: pointer; padding: 5px; }
 
         .nav-tabs { display: flex; gap: 8px; padding: 20px; justify-content: center; }
-        .nav-tab { flex: 1; max-width: 120px; padding: 10px; background: #0a0a0a; border: 1px solid #333; color: var(--silver); cursor: pointer; border-radius: 4px; text-align: center; font-size: 0.8rem; }
-        .nav-tab.active { border-color: var(--accent); color: var(--accent); background: var(--surface); box-shadow: 0 0 10px var(--accent-glow); }
+        .nav-tab { flex: 1; max-width: 100px; padding: 10px; background: #0a0a0a; border: 1px solid #333; color: var(--silver); cursor: pointer; border-radius: 4px; text-align: center; font-size: 0.8rem; }
+        .nav-tab.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
 
-        /* =========================================
-           2. ダッシュボード表示
-        ========================================= */
-        .dashboard {
-            padding: 0 20px calc(40px + var(--sa-bottom));
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+        .dashboard { padding: 0 20px calc(50px + var(--sa-bottom)); display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        
+        /* カードデザイン（全体をクリック可能に） */
+        .event-card { 
+            background: var(--surface); border: 1px solid var(--rust); padding: 20px; border-radius: 8px; 
+            position: relative; display: flex; flex-direction: column; gap: 8px; 
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
         }
-
-        .event-card {
-            background: var(--surface);
-            border: 1px solid var(--rust);
-            padding: 20px;
-            border-radius: 8px;
-            position: relative;
-            box-shadow: 0 5px 15px #000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .event-card:active { transform: scale(0.98); }
         .game-monst { border-left: 4px solid var(--monst-red); }
         .game-dokkan { border-left: 4px solid var(--dokkan-yellow); }
-
-        .e-type { font-size: 0.7rem; color: var(--accent); letter-spacing: 1px; }
-        .e-title { font-size: 1.2rem; font-weight: bold; }
-        .e-desc { font-size: 0.85rem; color: var(--silver); line-height: 1.5; margin-bottom: 10px; }
         
-        .e-footer { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; margin-top: auto; }
-        .c-countdown { font-family: monospace; font-size: 1rem; color: var(--accent); text-align: right; }
-        .c-countdown.danger { color: var(--danger); animation: pulse 1s infinite; }
+        /* クリア状態 */
+        .event-card.cleared { filter: grayscale(0.8) brightness(0.4); opacity: 0.6; }
+        .clear-mark { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 3rem; color: rgba(255,255,255,0.1); font-weight: 900; pointer-events: none; z-index: 1; }
+        .event-card.cleared .clear-mark { display: block; }
 
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .e-header { display: flex; justify-content: space-between; align-items: flex-start; z-index: 2; }
+        .e-type { font-size: 0.7rem; color: var(--accent); letter-spacing: 1px; }
+        .action-btns { display: flex; gap: 8px; }
+        .action-btn { background: none; border: 1px solid var(--rust); color: var(--silver); padding: 6px 10px; cursor: pointer; border-radius: 4px; font-size: 1rem; position: relative; z-index: 10; }
+        .action-btn.active { border-color: var(--accent); color: var(--accent); }
+
+        .e-title { font-size: 1.1rem; font-weight: bold; z-index: 2; }
+        .has-memo-indicator { color: var(--accent); font-size: 0.8rem; margin-left: 5px; }
+
+        .e-desc { font-size: 0.8rem; color: var(--silver); line-height: 1.4; z-index: 2; }
+        .e-footer { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; margin-top: auto; display: flex; justify-content: flex-end; }
+        .c-countdown { font-family: monospace; font-size: 0.9rem; color: var(--accent); }
+
+        /* ボトムシート */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; backdrop-filter: blur(5px); }
+        .sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #0f0f12; border-top: 2px solid var(--accent); border-radius: 20px 20px 0 0; padding: 20px; z-index: 1001; transition: 0.4s; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+        .sheet.active { bottom: 0; }
+        .sheet-title { color: var(--accent); text-align: center; margin-bottom: 20px; font-family: 'Cinzel'; border-bottom: 1px solid var(--rust); padding-bottom: 10px; }
+
+        .memo-area { width: 100%; height: 120px; background: #000; border: 1px solid var(--rust); color: #fff; padding: 10px; border-radius: 4px; font-size: 1rem; margin-bottom: 15px; }
+        .img-prev { width: 100%; min-height: 100px; border: 1px dashed var(--rust); margin-bottom: 15px; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
+        .img-prev img { max-width: 100%; border: 1px solid var(--accent); }
+        .file-label { display: block; background: var(--rust); color: #fff; padding: 15px; text-align: center; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
-<body>
+<body data-wallpaper="stone" data-accent="gold">
 
     <header>
-        <div class="logo">OATH & ABYSS</div>
+        <div class="logo" id="portalLogo">OATH & ABYSS</div>
+        <div class="hdr-tools">
+            <button class="hdr-icon" id="btn-archive">📦</button>
+            <button class="hdr-icon" id="btn-settings">⚙</button>
+        </div>
     </header>
 
     <nav class="nav-tabs">
@@ -97,75 +98,187 @@
 
     <main class="dashboard" id="eventGrid"></main>
 
+    <div class="overlay" id="overlay" onclick="closeAllSheets()"></div>
+
+    <div class="sheet" id="settingsSheet">
+        <div class="sheet-title">PORTAL SETTINGS</div>
+        <div style="font-size: 0.8rem; color: var(--accent); margin-bottom: 5px;">ポータルの銘 (Portal Title)</div>
+        <input type="text" id="inputPortalName" style="width:100%; background:#000; border:1px solid var(--rust); color:var(--accent); padding:10px; margin-bottom:20px;" placeholder="名前を入力...">
+
+        <div style="font-size: 0.8rem; color: var(--accent); margin-bottom: 10px;">機能の表示設定</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <label style="display:flex; justify-content:space-between;">制覇機能 (✅) <input type="checkbox" id="tog-check" checked></label>
+            <label style="display:flex; justify-content:space-between;">神託リマインド (🔔) <input type="checkbox" id="tog-rem" checked></label>
+            <label style="display:flex; justify-content:space-between;">カウントダウン <input type="checkbox" id="tog-count" checked></label>
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--accent); margin: 20px 0 10px;">壁紙 (Wallpaper)</div>
+        <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            <button class="st-btn bg-btn" data-bg="trueblack">漆黒</button>
+            <button class="st-btn bg-btn" data-bg="stone">石壁</button>
+            <button class="st-btn bg-btn" data-bg="magic">魔法陣</button>
+            <button class="st-btn bg-btn" data-bg="stars">星空</button>
+        </div>
+        <button onclick="resetPortalData()" style="width:100%; background:none; border:1px solid var(--danger); color:var(--danger); padding:10px; margin-top:20px; border-radius:4px;">ポータルの記録を初期化</button>
+    </div>
+
+    <div class="sheet" id="memoSheet">
+        <div class="sheet-title" id="memoTitle">戦術の書</div>
+        <textarea id="memoText" class="memo-area" placeholder="攻略パーティやメモを記せ..."></textarea>
+        <div id="imagePreview" class="img-prev">画像なし</div>
+        <label class="file-label" style="background:var(--rust); margin-bottom:10px;">🖼 画像を捧げる<input type="file" id="imageInput" style="display:none" accept="image/*"></label>
+        <button onclick="saveMemo()" style="width:100%; background:var(--accent); color:#000; border:none; padding:15px; font-weight:bold; border-radius:4px;">刻む (Save)</button>
+        <button onclick="removeImage()" style="background:none; border:1px solid var(--danger); color:var(--danger); width:100%; margin-top:10px; padding:10px; border-radius:4px;">画像を消去</button>
+    </div>
+
     <script>
         // ==========================================
-        // ★ 今後はここから下のデータを直接書き換えるだけ！
+        // 1. 共通データ
         // ==========================================
         const initialEvents = [
-            { id: 'gen_8hxkd', game: 'monst', type: 'イベント', title: '招待キャンペーン', start: '2026-03-29T04:00:00', end: '2026-04-30T03:59:00', desc: '初回だとエステルの運極を確保できる！　全５人まで招待可能！' },
+            { id: 'gen_8hxkd', game: 'monst', type: 'イベント', title: '招待キャンペーン', start: '2026-03-29T04:00:00', end: '2026-04-30T03:59:00', desc: '初回だとエステルの運極を確保できる！ 全５人まで招待可能！' },
             { id: 'gen_mcvlw', game: 'monst', type: 'ガチャ', title: '毎日弾いて選んで！フェイバリットガチャ', start: '2026-04-10T12:00:00', end: '2026-04-20T03:59:00', desc: '毎日10連して選んだ５属性それぞれを最終日に獲得できる。' },
             { id: 'gen_9hhtr', game: 'monst', type: 'イベント', title: 'ファミマスポットキャンペーン', start: '2026-04-14T04:00:00', end: '2026-04-28T03:59:00', desc: 'ファミリーマートに特別なモンスポットが出現！' },
             { id: 'gen_pa9r4', game: 'monst', type: 'イベント', title: 'お楽しみアイテムBOX', start: '2026-04-11T12:00:00', end: '2026-05-02T11:59:00', desc: '辰見あかり、亜門真守、潤海みはるをクリアすることで獲得可能！' },
             { id: 'gen_dav26', game: 'monst', type: 'クエスト', title: '覇者の塔', start: '2026-04-07T12:00:00', end: '2026-04-25T11:59:00', desc: '全クリアでオーブ６８個獲得！' },
-            { id: 'gen_f4b9s', game: 'monst', type: 'イベント', title: '破壊の星墓', start: '2026-03-27T12:00:00', end: '2026-04-21T11:59:00', desc: '現状最難関コンテンツ。３０フロアクリアでオーブ２０個獲得可能！報酬は豪華！' },
-            { id: 'gen_w68pw', game: 'monst', type: 'クエスト', title: '未開の砂宮', start: '2026-04-14T12:00:00', end: '2026-04-29T11:59:00', desc: '少し難易度の高いコンテンツ。報酬はそこそこ豪華なのでできるところまでやりたい！' },
+            { id: 'gen_f4b9s', game: 'monst', type: 'イベント', title: '破壊の星墓', start: '2026-03-27T12:00:00', end: '2026-04-21T11:59:00', desc: '現状最難関コンテンツ。報酬は豪華！' },
+            { id: 'gen_w68pw', game: 'monst', type: 'クエスト', title: '未開の砂宮', start: '2026-04-14T12:00:00', end: '2026-04-29T11:59:00', desc: '少し難易度の高いコンテンツ。' },
             { id: 'gen_qgf1b', game: 'monst', type: 'キャンペーン', title: '英雄の神殿', start: '2026-04-13T00:00:00', end: '2026-04-14T23:59:00', desc: 'ノーコン報酬のわくわくの実が２個確定！' },
-            { id: 'gen_0aikv', game: 'monst', type: 'キャンペーン', title: '追憶の書庫', start: '2026-04-12T00:00:00', end: '2026-04-16T23:59:00', desc: '対象クエストのスコア報酬にスペシャルボーナス！' },
+            { id: 'gen_0aikv', game: 'monst', type: 'キャンペーン', title: '追憶の書庫', start: '2026-04-13T00:00:00', end: '2026-04-20T23:59:00', desc: '書庫ポイントの消費が半分！' }
+                  { id: 'gen_60uth', game: 'dokkan', type: 'クエスト', title: 'ガチバトル２', start: '2026-04-14T14:00:00', end: '2026-04-18T00:00:00', desc: '強敵を倒すと豪華報酬！※無期限開催' },
+            { id: 'gen_dw92b', game: 'dokkan', type: 'クエスト', title: 'ドッカンフロンティア　ナメック星編', start: '2026-04-14T17:00:00', end: '2026-04-18T00:00:00', desc: '強敵を倒すと豪華報酬！※無期限開催' },
+            { id: 'gen_ory6u', game: 'dokkan', type: 'クエスト', title: '極限Zバトル　ラディッツ', start: '2026-04-08T17:00:00', end: '2026-04-13T15:56:51', desc: '新たなイベント登場！' },
+            { id: 'gen_dlbz9', game: 'dokkan', type: 'クエスト', title: '極限スーパーバトルロード', start: '2026-04-08T17:00:00', end: '2026-04-18T00:00:00', desc: '新たなステージ登場！※無期限開催' },
+            { id: 'gen_e4mlt', game: 'dokkan', type: 'ガチャ', title: 'ドッカンフェス開催　ベジータ＆ナッパ', start: '2026-04-01T14:00:00', end: '2026-04-23T16:59:00', desc: '新SSRで栽培マンも登場！　ベジータはかなり強いらしい！！' },
 
-            // 【ここに新しいイベントを書き足すことができます】
         ];
 
-        let currentTab = 'all';
+        // ==========================================
+        // 2. 状態管理
+        // ==========================================
+        let state = {
+            portalName: localStorage.getItem('oa_hard_name') || 'OATH & ABYSS',
+            cleared: JSON.parse(localStorage.getItem('oa_hard_cleared') || '[]'),
+            memos: JSON.parse(localStorage.getItem('oa_hard_memos') || '{}'),
+            wallpaper: localStorage.getItem('oa_hard_bg') || 'stone',
+            accent: localStorage.getItem('oa_hard_acc') || 'gold',
+            currentTab: 'all', isArchive: false, activeId: null, tempImg: null
+        };
 
+        const saveAll = () => {
+            localStorage.setItem('oa_hard_name', state.portalName);
+            localStorage.setItem('oa_hard_cleared', JSON.stringify(state.cleared));
+            localStorage.setItem('oa_hard_memos', JSON.stringify(state.memos));
+            localStorage.setItem('oa_hard_bg', state.wallpaper);
+            localStorage.setItem('oa_hard_acc', state.accent);
+        };
+
+        // ==========================================
+        // 3. メイン処理
+        // ==========================================
         function render() {
             const grid = document.getElementById('eventGrid');
-            grid.innerHTML = '';
-            const now = new Date();
-
+            grid.innerHTML = ''; const now = new Date();
             const filtered = initialEvents.filter(ev => {
-                const isTabMatch = currentTab === 'all' || ev.game === currentTab;
+                const isCleared = state.cleared.includes(ev.id);
                 const isEnded = new Date(ev.end) < now;
-                return isTabMatch && !isEnded; // 終了したものは表示しない
+                if (state.isArchive) return isCleared || isEnded;
+                return (state.currentTab === 'all' || ev.game === state.currentTab) && !isCleared && !isEnded;
             });
-
-            // 終了日が近い順に並べる
             filtered.sort((a, b) => new Date(a.end) - new Date(b.end));
 
             filtered.forEach(ev => {
+                const isCleared = state.cleared.includes(ev.id);
+                const hasMemo = !!state.memos[ev.id] && (state.memos[ev.id].text || state.memos[ev.id].img);
                 const card = document.createElement('article');
-                card.className = `event-card game-${ev.game}`;
+                card.className = `event-card game-${ev.game} ${isCleared ? 'cleared' : ''}`;
+                
+                // カード全体クリックでメモを開く
+                card.onclick = () => openMemo(ev.id, ev.title);
+
                 card.innerHTML = `
-                    <div class="e-type">【${ev.type}】${ev.game.toUpperCase()}</div>
-                    <div class="e-title">${ev.title}</div>
-                    <div class="e-desc">${ev.desc}</div>
-                    <div class="e-footer">
-                        <div class="c-countdown" data-end="${ev.end}"></div>
+                    <div class="clear-mark">FINISHED</div>
+                    <div class="e-header">
+                        <div class="e-type">【${ev.type}】${ev.game.toUpperCase()}</div>
+                        <div class="action-btns">
+                            <button class="action-btn action-btn-rem" onclick="event.stopPropagation(); addReminder('${ev.title}','${ev.end}')">🔔</button>
+                            <button class="action-btn action-btn-check ${isCleared?'active':''}" onclick="event.stopPropagation(); toggleClear('${ev.id}')">✅</button>
+                        </div>
                     </div>
+                    <div class="e-title">${ev.title}${hasMemo ? '<span class="has-memo-indicator">●</span>' : ''}</div>
+                    <div class="e-desc">${ev.desc}</div>
+                    <div class="e-footer"><div class="c-countdown" data-end="${ev.end}"></div></div>
                 `;
                 grid.appendChild(card);
             });
+            updateTimers();
         }
 
-        function filter(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.id === `tab-${tab}`));
-            render();
+        // 機能オンオフの適用
+        ['check', 'rem', 'count'].forEach(f => {
+            const tog = document.getElementById(`tog-${f}`);
+            tog.checked = localStorage.getItem(`oa_show_${f}`) !== 'false';
+            if(!tog.checked) document.body.classList.add(`hide-${f}`);
+            tog.onchange = (e) => { 
+                localStorage.setItem(`oa_show_${f}`, e.target.checked); 
+                document.body.classList.toggle(`hide-${f}`, !e.target.checked); 
+            };
+        });
+
+        const applySettings = () => {
+            document.getElementById('portalLogo').innerText = state.portalName;
+            document.getElementById('inputPortalName').value = state.portalName;
+            document.body.setAttribute('data-wallpaper', state.wallpaper);
+            document.body.setAttribute('data-accent', state.accent);
+        };
+
+        // 各種ハンドラ
+        document.getElementById('btn-settings').onclick = () => { document.getElementById('overlay').style.display='block'; document.getElementById('settingsSheet').classList.add('active'); };
+        document.getElementById('btn-archive').onclick = function() { state.isArchive = !state.isArchive; this.classList.toggle('active', state.isArchive); render(); };
+        document.getElementById('inputPortalName').oninput = (e) => { state.portalName = e.target.value || 'OATH & ABYSS'; document.getElementById('portalLogo').innerText = state.portalName; saveAll(); };
+        document.querySelectorAll('.bg-btn').forEach(b => b.onclick = (e) => { state.wallpaper = e.target.dataset.bg; saveAll(); applySettings(); });
+
+        function closeAllSheets() { document.getElementById('overlay').style.display='none'; document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active')); }
+        function filter(tab) { state.currentTab = tab; state.isArchive = false; document.getElementById('btn-archive').classList.remove('active'); document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.id === `tab-${tab}`)); render(); }
+        function toggleClear(id) { const idx = state.cleared.indexOf(id); if (idx > -1) state.cleared.splice(idx, 1); else state.cleared.push(id); saveAll(); render(); }
+        
+        function openMemo(id, title) {
+            state.activeId = id; 
+            const data = state.memos[id] || { text: '', img: null };
+            document.getElementById('memoTitle').innerText = title;
+            document.getElementById('memoText').value = data.text;
+            state.tempImg = data.img;
+            refreshImgPrev();
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('memoSheet').classList.add('active');
         }
 
+        function saveMemo() { state.memos[state.activeId] = { text: document.getElementById('memoText').value, img: state.tempImg }; saveAll(); closeAllSheets(); render(); }
+        function refreshImgPrev() { document.getElementById('imagePreview').innerHTML = state.tempImg ? `<img src="${state.tempImg}">` : "画像なし"; }
+        
+        document.getElementById('imageInput').onchange = function(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader(); reader.onload = (ev) => {
+                const img = new Image(); img.onload = () => {
+                    const canvas = document.createElement('canvas'); let scale = img.width > 600 ? 600/img.width : 1;
+                    canvas.width = img.width*scale; canvas.height = img.height*scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    state.tempImg = canvas.toDataURL('image/jpeg', 0.7); refreshImgPrev();
+                }; img.src = ev.target.result;
+            }; reader.readAsDataURL(file);
+        };
+        function removeImage() { state.tempImg = null; refreshImgPrev(); }
+        function addReminder(title, end) { const fD = (d) => new Date(d).toISOString().replace(/-|:|\.\d\d\d/g, ""); window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fD(new Date(new Date(end).getTime()-1800000))}/${fD(end)}`, '_blank'); }
         function updateTimers() {
-            const now = new Date();
-            document.querySelectorAll('.c-countdown').forEach(el => {
-                const end = new Date(el.dataset.end);
-                const diff = end - now;
-                if (diff <= 0) { el.innerText = "終了"; return; }
+            const now = new Date(); document.querySelectorAll('.c-countdown').forEach(el => {
+                const diff = new Date(el.dataset.end) - now; if(diff <= 0) { el.innerText = "ENDED"; return; }
                 const d = Math.floor(diff/864e5), h = Math.floor(diff/36e5%24), m = Math.floor(diff/6e4%60), s = Math.floor(diff/1e3%60);
-                el.innerText = `${d}日 ${h}:${m}:${s}`;
-                if (d === 0) el.classList.add('danger'); // 残り24時間未満で赤くする
+                el.innerText = `${d}d ${h}:${m}:${s}`;
             });
         }
+        function resetPortalData() { if(confirm("全記録を初期化しますか？")) { localStorage.clear(); location.reload(); } }
 
-        setInterval(updateTimers, 1000);
-        render();
+        setInterval(updateTimers, 1000); applySettings(); render();
     </script>
 </body>
 </html>
