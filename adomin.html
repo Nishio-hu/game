@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OATH & ABYSS - 伝承紡ぎの書 (Generator)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-base: #0a0a0c; --surface: #15151a; --gold: #C5A059; --rust: #5A3A22; --silver: #9CA3AF; --text-main: #E5E7EB; --danger: #ff4d4d; --monst-red: #8B0000; --dokkan-yellow: #DAA520; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Noto Serif JP', sans-serif; background-color: var(--bg-base); color: var(--text-main); padding: 30px; line-height: 1.6; min-height: 100vh; }
+        h1 { font-family: 'Cinzel', serif; color: var(--gold); text-align: center; margin-bottom: 30px; letter-spacing: 2px;}
+        .container { display: flex; gap: 30px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap; align-items: flex-start;}
+        .panel { background: var(--surface); border: 1px solid var(--rust); padding: 25px; border-radius: 8px; flex: 1; min-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .panel-left { flex: 1.5; }
+        .panel-title { color: var(--gold); border-bottom: 1px solid var(--rust); padding-bottom: 10px; margin-bottom: 20px; font-size: 1.2rem; font-family: 'Cinzel', serif;}
+        .forms-container { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; max-height: 60vh; overflow-y: auto; padding-right: 10px;}
+        .forms-container::-webkit-scrollbar { width: 8px; } .forms-container::-webkit-scrollbar-track { background: #000; border-radius: 4px;} .forms-container::-webkit-scrollbar-thumb { background: var(--rust); border-radius: 4px;}
+        .form-card { background: #0d0d12; border: 1px solid #333; padding: 20px; border-radius: 6px; position: relative; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); transition: border-color 0.3s; }
+        .form-card:hover { border-color: var(--gold); }
+        .btn-remove-card { position: absolute; top: 10px; right: 15px; background: transparent; border: none; color: var(--danger); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
+        .btn-remove-card:hover { transform: scale(1.2); }
+        .form-group { margin-bottom: 15px; } label { display: block; font-size: 0.8rem; color: var(--silver); margin-bottom: 5px; }
+        input, select, textarea { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: inherit; font-size: 0.95rem; }
+        input:focus, select:focus, textarea:focus { border-color: var(--gold); outline: none; } textarea { resize: vertical; height: 60px; }
+        .row { display: flex; gap: 15px; } .row > div { flex: 1; }
+        .btn-group { display: flex; gap: 15px; }
+        .btn { background: #000; border: 1px solid var(--gold); color: var(--gold); padding: 12px 20px; font-size: 1rem; cursor: pointer; border-radius: 4px; transition: 0.3s; width: 100%; font-family: 'Cinzel', 'Noto Serif JP', serif; font-weight: bold; text-align: center; text-decoration: none; display: block;}
+        .btn:hover { background: rgba(197, 160, 89, 0.2); box-shadow: 0 0 15px rgba(197, 160, 89, 0.5); }
+        .btn-primary { background: rgba(197, 160, 89, 0.1); border-color: var(--gold); }
+        .btn-danger { border-color: var(--danger); color: var(--danger); } .btn-danger:hover { background: rgba(255, 77, 77, 0.2); box-shadow: 0 0 15px rgba(255, 77, 77, 0.5); }
+        .btn-small { padding: 5px 10px; font-size: 0.8rem; width: auto; }
+        .event-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;}
+        .event-list::-webkit-scrollbar { width: 6px; } .event-list::-webkit-scrollbar-thumb { background: #333; border-radius: 3px;}
+        .event-item { background: #000; border: 1px solid #333; padding: 12px 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .event-item.monst { border-left: 4px solid var(--monst-red); } .event-item.dokkan { border-left: 4px solid var(--dokkan-yellow); }
+        .e-title { font-weight: bold; font-size: 0.95rem; color: #fff;} .e-meta { font-size: 0.75rem; color: var(--silver); }
+        .json-preview { width: 100%; height: 200px; background: #000; color: #4ade80; border: 1px solid #333; padding: 15px; font-family: monospace; font-size: 0.85rem; overflow-y: auto; white-space: pre-wrap; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>OATH & ABYSS - 伝承紡ぎの書</h1>
+
+    <div class="container">
+        <div class="panel panel-left">
+            <h2 class="panel-title">事象の錬成陣 (Bulk Create)</h2>
+            <p style="color: var(--silver); font-size:0.85rem; margin-bottom: 15px;">※「＋ 枠を追加」を押すと直前の設定が引き継がれます。連続入力に最適です。</p>
+            
+            <form id="bulkForm">
+                <div class="forms-container" id="formsContainer"></div>
+                <div class="btn-group">
+                    <button type="button" class="btn" id="btnAddForm">＋ 新たな詠唱枠を追加 (Add Row)</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveAll" style="background: var(--rust); color: #fff; border-color: var(--rust);">直接ダッシュボードへ刻む (Append & Save)</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="panel">
+            <a href="index.html" class="btn" style="background: var(--gold); color: #000; margin-bottom: 25px;" target="_blank">👁 ダッシュボードを見る (Open Portal)</a>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--rust); padding-bottom: 10px;">
+                <h2 class="panel-title" style="border: none; margin: 0; padding: 0;">現在の事象一覧 (Event List)</h2>
+                <span id="eventCount" style="color: var(--silver); font-size: 0.9rem; font-weight: bold;">0 件</span>
+            </div>
+            
+            <div class="event-list" id="eventList"></div>
+            <button class="btn btn-danger" id="btnClearAll" style="margin-bottom: 25px;">目録を全て消し去る (Clear List)</button>
+
+            <h2 class="panel-title">裏側のデータ (JSON View)</h2>
+            <div class="json-preview" id="jsonPreview">[]</div>
+            <button class="btn" id="btnCopy" style="margin-top: 10px;">文字列をコピーする (Copy JSON)</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const normalizeEvent = (ev) => ({
+                id: ev.id || `gen_${Math.random().toString(36).slice(2)}`,
+                game: ['monst', 'dokkan'].includes(ev.game) ? ev.game : 'monst',
+                type: ev.type || 'イベント', title: ev.title || '未知の事象', desc: ev.desc || '',
+                start: ev.start || new Date().toISOString(), end: ev.end || new Date(Date.now() + 86400000*30).toISOString(),
+                enemyIcon: ev.enemyIcon || ''
+            });
+
+            // ★ ダッシュボードと全く同じ保存領域（oa_events_data）を参照し、自動同期する ★
+            let events = JSON.parse(localStorage.getItem('oa_events_data') || '[]').map(normalizeEvent);
+
+            const formsContainer = document.getElementById('formsContainer');
+            const listArea = document.getElementById('eventList');
+            const jsonPreview = document.getElementById('jsonPreview');
+            const countLabel = document.getElementById('eventCount');
+            const generateId = (game) => (game === 'monst' ? 'm_' : 'd_') + Math.random().toString(36).substr(2, 6);
+            const formatToUTC = (localStr) => new Date(localStr).toISOString();
+
+            const createFormCard = (defaultVals = {}) => {
+                const card = document.createElement('div'); card.className = 'form-card';
+                card.innerHTML = `
+                    <button type="button" class="btn-remove-card" title="この枠を削除">×</button>
+                    <div class="row">
+                        <div class="form-group"><label>領域 (Game)</label><select class="val-game" required><option value="monst" ${defaultVals.game === 'monst' ? 'selected' : ''}>MONSTER STRIKE</option><option value="dokkan" ${defaultVals.game === 'dokkan' ? 'selected' : ''}>DOKKAN BATTLE</option></select></div>
+                        <div class="form-group"><label>種別 (Category)</label><select class="val-type" required><option value="イベント" ${defaultVals.type === 'イベント' ? 'selected' : ''}>イベント</option><option value="ガチャ" ${defaultVals.type === 'ガチャ' ? 'selected' : ''}>ガチャ</option><option value="クエスト" ${defaultVals.type === 'クエスト' ? 'selected' : ''}>クエスト</option><option value="キャンペーン" ${defaultVals.type === 'キャンペーン' ? 'selected' : ''}>キャンペーン</option><option value="コラボ" ${defaultVals.type === 'コラボ' ? 'selected' : ''}>コラボ</option><option value="Zバトル" ${defaultVals.type === 'Zバトル' ? 'selected' : ''}>Zバトル</option></select></div>
+                        <div class="form-group icon-group" style="display: ${defaultVals.type === 'Zバトル' ? 'block' : 'none'};"><label>幻影 (Zバトル用 絵文字)</label><input type="text" class="val-icon" placeholder="例: 👹"></div>
+                    </div>
+                    <div class="form-group"><label>事象の名 (Title) <span style="color:var(--danger)">*</span></label><input type="text" class="val-title" placeholder="例: 新イベント" required></div>
+                    <div class="form-group"><label>概要 (Description)</label><textarea class="val-desc" placeholder="詳細を入力...">${defaultVals.desc || ''}</textarea></div>
+                    <div class="row">
+                        <div class="form-group"><label>開始 (Start) <span style="color:var(--danger)">*</span></label><input type="datetime-local" class="val-start" value="${defaultVals.start || ''}" required></div>
+                        <div class="form-group"><label>終了 (End) <span style="color:var(--danger)">*</span></label><input type="datetime-local" class="val-end" value="${defaultVals.end || ''}" required></div>
+                    </div>
+                `;
+                const typeSelect = card.querySelector('.val-type'); const iconGroup = card.querySelector('.icon-group');
+                typeSelect.addEventListener('change', (e) => { if (e.target.value === 'Zバトル') iconGroup.style.display = 'block'; else { iconGroup.style.display = 'none'; card.querySelector('.val-icon').value = ''; } });
+                card.querySelector('.btn-remove-card').addEventListener('click', () => { if (document.querySelectorAll('.form-card').length > 1) card.remove(); else alert("最後の詠唱枠は消去できません。"); });
+                formsContainer.appendChild(card); formsContainer.scrollTop = formsContainer.scrollHeight;
+            };
+
+            createFormCard();
+
+            document.getElementById('btnAddForm').addEventListener('click', () => {
+                const cards = document.querySelectorAll('.form-card'); let defVals = {};
+                if (cards.length > 0) { const last = cards[cards.length - 1]; defVals = { game: last.querySelector('.val-game').value, type: last.querySelector('.val-type').value, start: last.querySelector('.val-start').value, end: last.querySelector('.val-end').value }; }
+                createFormCard(defVals);
+            });
+
+            const updateUI = () => {
+                // 保存時にダッシュボードと同期する
+                localStorage.setItem('oa_events_data', JSON.stringify(events));
+
+                jsonPreview.innerText = JSON.stringify(events, null, 2); countLabel.innerText = `${events.length} 件`; listArea.innerHTML = '';
+                if (events.length === 0) { listArea.innerHTML = '<div style="color:var(--silver); text-align:center; padding: 20px;">現在、事象は登録されていません。</div>'; return; }
+                const sortedEvents = [...events].sort((a,b) => new Date(a.end) - new Date(b.end));
+                sortedEvents.forEach(ev => {
+                    const div = document.createElement('div'); div.className = `event-item ${ev.game}`;
+                    const s = new Date(ev.start).toLocaleString('ja-JP', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}); const e = new Date(ev.end).toLocaleString('ja-JP', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+                    div.innerHTML = `<div><div class="e-meta" style="color: var(--gold);">【${ev.type}】 ${ev.game.toUpperCase()}</div><div class="e-title">${ev.title}</div><div class="e-meta">${s} 〜 ${e}</div></div><button class="btn btn-danger btn-small delete-btn" data-id="${ev.id}">削除</button>`;
+                    listArea.appendChild(div);
+                });
+                document.querySelectorAll('.delete-btn').forEach(btn => { btn.addEventListener('click', (e) => { events = events.filter(ev => ev.id !== e.target.dataset.id); updateUI(); }); });
+            };
+
+            document.getElementById('bulkForm').addEventListener('submit', (e) => {
+                e.preventDefault(); const cards = document.querySelectorAll('.form-card'); let newEvents = []; let hasError = false;
+                cards.forEach(card => {
+                    const title = card.querySelector('.val-title').value.trim(); const start = card.querySelector('.val-start').value; const end = card.querySelector('.val-end').value;
+                    if (!title || !start || !end) { hasError = true; card.style.borderColor = 'var(--danger)'; return; } card.style.borderColor = '#333';
+                    const evData = { id: generateId(card.querySelector('.val-game').value), game: card.querySelector('.val-game').value, title: title, start: formatToUTC(start), end: formatToUTC(end), type: card.querySelector('.val-type').value, desc: card.querySelector('.val-desc').value.trim() };
+                    const icon = card.querySelector('.val-icon').value.trim(); if (evData.type === 'Zバトル' && icon) evData.enemyIcon = icon;
+                    newEvents.push(evData);
+                });
+                if (hasError) { alert("未入力の枠があります。赤枠を確認してください。"); return; }
+                if (newEvents.length > 0) {
+                    events.push(...newEvents); updateUI(); formsContainer.innerHTML = ''; createFormCard();
+                    alert(`追加完了！ダッシュボードを開けば、自動的に反映されています。`);
+                }
+            });
+
+            document.getElementById('btnClearAll').addEventListener('click', () => { if(confirm('本当に目録のデータを全て消し去りますか？（ダッシュボード側も消去されます）')) { events = []; updateUI(); } });
+            document.getElementById('btnCopy').addEventListener('click', () => { navigator.clipboard.writeText(JSON.stringify(events, null, 2)).then(() => alert("コピーしました。")).catch(() => alert("コピー失敗")); });
+
+            updateUI();
+        });
+    </script>
+</body>
+</html>
