@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>My Portal - 究極のイベント目録</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           1. ダークファンタジー変数 & セーフエリア
+        ========================================= */
+        :root {
+            --bg-base: #030305;
+            --surface: rgba(18, 18, 22, 0.9);
+            --text-main: #E5E7EB;
+            --silver: #9CA3AF;
+            --rust: #5A3A22;
+            --danger: #ff4d4d;
+            
+            --accent: #C5A059; 
+            --accent-glow: rgba(197, 160, 89, 0.6);
+            
+            --monst-blue: rgba(0, 51, 102, 0.8);
+            --monst-red: #8B0000;
+            --dokkan-orange: rgba(204, 85, 0, 0.8);
+            --dokkan-yellow: #DAA520;
+
+            --sa-top: env(safe-area-inset-top, 0px);
+            --sa-bottom: env(safe-area-inset-bottom, 0px);
+            --sa-left: env(safe-area-inset-left, 0px);
+            --sa-right: env(safe-area-inset-right, 0px);
+        }
+
+        body[data-wallpaper="stone"] { background: radial-gradient(circle at center, #111 0%, #000 100%); }
+        body[data-wallpaper="trueblack"] { background: #000000; }
+        body[data-wallpaper="magic"] { background: radial-gradient(circle at 50% 50%, rgba(20,0,40,0.9), #000); }
+        body[data-wallpaper="stars"] { background: radial-gradient(circle at top, #0b1021, #000); }
+        body[data-accent="silver"] { --accent: #B0BEC5; --accent-glow: rgba(176,190,197,0.6); }
+        body[data-accent="bronze"] { --accent: #CD7F32; --accent-glow: rgba(205, 127, 50, 0.6); }
+
+        body.hide-check .clear-btn { display: none !important; }
+        body.hide-pin .pin-btn { display: none !important; }
+        body.hide-rem .rem-btn { display: none !important; }
+        body.hide-share .share-btn { display: none !important; }
+        body.hide-memo .memo-btn { display: none !important; }
+        body.hide-count .c-countdown { display: none !important; }
+        body.hide-prog .progress-track { display: none !important; }
+        body.hide-links .q-links { display: none !important; }
+        body.hide-part #env-canvas { display: none !important; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Cinzel', 'Noto Serif JP', serif; font-feature-settings: "palt";
+            color: var(--text-main); background-color: var(--bg-base);
+            overflow-x: hidden; min-height: 100vh; transition: background 0.8s ease;
+        }
+        body:not([data-wallpaper="trueblack"])::after {
+            content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect width="4" height="4" fill="none"/><rect width="1" height="1" fill="rgba(255,255,255,0.03)"/></svg>') repeat;
+        }
+        #env-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+        /* =========================================
+           2. ヘッダー & ナビゲーション
+        ========================================= */
+        header {
+            position: sticky; top: 0; z-index: 100;
+            padding: calc(15px + var(--sa-top)) calc(20px + var(--sa-right)) 15px calc(20px + var(--sa-left));
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95) 70%, transparent);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+        }
+        .logo { font-size: 1.6rem; color: var(--accent); letter-spacing: 0.2em; text-shadow: 0 0 10px var(--accent-glow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50%;}
+        .header-tools { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;}
+        .search-input { background: rgba(0,0,0,0.6); border: 1px solid var(--rust); color: #fff; padding: 8px 12px; width: 140px; transition: 0.3s; font-size: 16px; }
+        .search-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 10px var(--accent-glow); }
+        .audio-ctrl { display: flex; align-items: center; gap: 5px; }
+        .vol-slider { width: 60px; accent-color: var(--accent); cursor: pointer; }
+        .hdr-icon { background: transparent; border: none; font-size: 1.4rem; color: var(--accent); cursor: pointer; padding: 4px; transition: 0.2s;}
+        .hdr-icon:active { transform: scale(0.9); opacity: 0.7; }
+
+        .nav-tabs { display: flex; gap: 8px; padding: 20px calc(15px + var(--sa-left)) 10px; justify-content: center; position: relative; z-index: 10;}
+        .nav-tab { flex: 1; max-width: 150px; padding: 12px 5px; background: #0a0a0a; border: 1px solid #333; color: var(--silver); font-size: 0.9rem; cursor: pointer; text-align: center; transition: 0.3s; letter-spacing: 1px; border-radius: 4px; font-family: 'Cinzel', serif;}
+        .nav-tab.active { border-color: var(--accent); color: var(--accent); background: var(--surface); box-shadow: 0 0 15px var(--accent-glow); }
+
+        .category-filters { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; padding: 5px calc(15px + var(--sa-left)) 20px; position: relative; z-index: 10;}
+        .cat-btn { background: rgba(0,0,0,0.6); border: 1px solid #333; color: var(--silver); padding: 6px 12px; font-size: 0.75rem; font-family: 'Noto Serif JP'; cursor: pointer; transition: 0.2s; border-radius: 2px; }
+        .cat-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(197,160,89,0.1); }
+        .cat-btn:active { transform: scale(0.95); }
+
+        /* =========================================
+           3. ボトムシート (設定等)
+        ========================================= */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(5px);}
+        .overlay.active { opacity: 1; pointer-events: auto; }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 85vh; overflow-y: auto; background: rgba(15,15,18,0.98); border-top: 2px solid var(--accent); border-radius: 20px 20px 0 0; padding: 20px calc(20px + var(--sa-right)) calc(20px + var(--sa-bottom)) calc(20px + var(--sa-left)); z-index: 1001; transition: bottom 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.9); }
+        .bottom-sheet.active { bottom: 0; }
+        .sheet-handle { width: 40px; height: 5px; background: var(--rust); border-radius: 3px; margin: 0 auto 15px; }
+        .bs-title { color: var(--accent); text-align: center; font-size: 1.1rem; margin-bottom: 15px; border-bottom: 1px solid var(--rust); padding-bottom: 10px;}
+
+        .input-text { width: 100%; background: #000; border: 1px solid var(--rust); color: var(--accent); padding: 10px; font-family: 'Cinzel', 'Noto Serif JP'; font-size: 0.9rem; margin-bottom: 15px; border-radius: 4px;}
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--silver); padding: 8px 0;}
+        .switch { position: relative; width: 36px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; inset: 0; background: #333; border-radius: 20px; cursor: pointer; transition: 0.3s;}
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        input:checked + .slider { background: var(--accent); }
+        input:checked + .slider:before { transform: translateX(16px); }
+        .st-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;}
+        .st-btn { background: #000; border: 1px solid var(--rust); color: var(--silver); padding: 10px 8px; flex: 1; font-size: 0.8rem; cursor: pointer; font-family: 'Cinzel'; border-radius: 4px; text-align: center;}
+        .st-btn.active { border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 10px var(--accent-glow);}
+        
+        .sync-textarea { width: 100%; height: 60px; background: #000; border: 1px solid var(--rust); color: var(--accent); padding: 10px; font-family: monospace; font-size: 0.75rem; margin-bottom: 10px; resize: none; border-radius: 4px;}
+        
+        /* 戦術の書UI */
+        .tactic-textarea { width: 100%; height: 120px; background: #111; border: 1px solid var(--rust); color: var(--text-main); padding: 15px; font-family: 'Noto Serif JP'; font-size: 0.95rem; margin-bottom: 15px; resize: none; line-height: 1.6;}
+        .image-preview-area { width: 100%; min-height: 120px; border: 1px dashed var(--rust); display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; background: #000;}
+        .image-preview-area img { max-width: 100%; max-height: 300px; border: 1px solid var(--accent); }
+        .file-input-label { display: block; background: var(--rust); color: #fff; padding: 12px; text-align: center; cursor: pointer; font-size: 0.9rem; border-radius: 4px; margin-bottom: 15px; font-weight: bold;}
+        
+        /* 通知UI */
+        .rem-item { padding: 12px; border-bottom: 1px solid #333; font-size: 0.85rem; color: var(--silver); display: flex; justify-content: space-between; align-items: center;}
+        .rem-del { color: var(--danger); cursor: pointer; background: none; border: none; font-size: 1.2rem; padding: 5px;}
+
+        /* =========================================
+           5. イベントカード & ビュー制御
+        ========================================= */
+        .dashboard { position: relative; z-index: 10; max-width: 1400px; margin: 0 auto; padding: 0 calc(20px + var(--sa-right)) calc(50px + var(--sa-bottom)) calc(20px + var(--sa-left)); }
+        
+        .view-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+        .view-list { display: flex; flex-direction: column; gap: 16px; }
+        .view-list .event-card { flex-direction: row; align-items: center; padding: 16px 24px; }
+        .view-list .c-header { border: none; padding: 0; width: 160px; flex-shrink: 0; display: block; }
+        .view-list .e-desc { display: none; }
+        .view-list .e-title { flex-grow: 1; font-size: 1.1rem; margin: 0 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .view-list .e-footer { width: 180px; flex-shrink: 0; margin-top: 0;}
+        .view-list .q-links { display: none; }
+        .view-list .enemy-shadow { display: none; }
+
+        .event-card {
+            background: var(--surface); border: 1px solid var(--rust); padding: 20px;
+            position: relative; overflow: hidden; transition: 0.3s;
+            box-shadow: inset 0 0 20px #000, 0 5px 15px #000; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .event-card:hover { transform: translateY(-4px); box-shadow: inset 0 0 40px rgba(0,0,0,0.9), 0 15px 30px var(--accent-glow); z-index: 2; }
+        
+        .game-monst { border-left: 4px solid var(--monst-red); }
+        .game-dokkan { border: 1px solid var(--dokkan-yellow); }
+        
+        .event-card.is-pinned { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        .pinned-label { display: none; color: var(--accent); font-size: 0.7rem; border: 1px solid; padding: 2px 4px; margin-left: 6px; letter-spacing: 1px; border-radius: 2px;}
+        .event-card.is-pinned .pinned-label { display: inline-block; animation: pulse 2s infinite; }
+
+        .enemy-shadow {
+            position: absolute; right: -10px; top: 30px; font-size: 5rem; opacity: 0.15;
+            pointer-events: none; filter: drop-shadow(0 0 15px var(--danger));
+            z-index: 0; transform: rotate(-10deg);
+        }
+
+        .c-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;}
+        .c-crest { font-size: 0.8rem; color: var(--accent); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;}
+        .e-type-tag { font-family: 'Noto Serif JP'; font-size: 0.7rem; border: 1px solid var(--rust); padding: 2px 6px; color: var(--silver); background: rgba(0,0,0,0.5);}
+        
+        .c-tools { display: flex; gap: 8px; position: relative; z-index: 2;}
+        .action-icon { background: transparent; border: none; font-size: 1.3rem; color: var(--rust); cursor: pointer; transition: 0.2s; padding: 4px;}
+        .action-icon.active { color: var(--accent); filter: drop-shadow(0 0 8px var(--accent)); }
+        .action-icon:active { transform: scale(0.8); }
+
+        .e-title { font-size: 1.25rem; font-weight: 700; word-break: auto-phrase; text-shadow: 2px 2px 4px #000; position: relative; z-index: 2;}
+        .e-desc { font-size: 0.9rem; color: var(--silver); line-height: 1.5; word-break: auto-phrase; position: relative; z-index: 2;}
+
+        .q-links { display: flex; gap: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; margin-top: auto; position: relative; z-index: 2;}
+        .q-link { color: var(--silver); text-decoration: none; font-size: 0.75rem; border: 1px solid #333; padding: 2px 8px; background: rgba(0,0,0,0.5);}
+
+        .e-footer { margin-top: 10px; position: relative; z-index: 2;}
+        .progress-track { width: 100%; height: 4px; background: #000; border-radius: 2px; overflow: hidden; margin-top: 5px; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; box-shadow: 0 0 5px var(--accent);}
+        .progress-fill.danger { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
+        
+        .c-countdown { font-family: monospace; font-size: 0.95rem; color: var(--accent); text-align: right; }
+        .c-countdown.danger-pulse { color: var(--danger); animation: pulseDanger 1s infinite; text-shadow: 0 0 5px rgba(255,51,51,0.5); }
+
+        @keyframes pulseDanger { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; transform: scale(1.02); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        .event-card.cleared { filter: grayscale(1) brightness(0.4); }
+        .event-card.cleared .progress-track, .event-card.cleared .c-countdown, .event-card.cleared .q-links { display: none; }
+        .clear-mark { display: none; position: absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-15deg); color:rgba(255,255,255,0.08); font-size:3.5rem; font-weight:900; letter-spacing:5px; pointer-events:none; z-index:1;}
+        .event-card.cleared .clear-mark { display: block; }
+
+        @media (max-width: 768px) {
+            .view-list .event-card { flex-direction: column; align-items: flex-start; padding: 15px;}
+            .view-list .c-header, .view-list .e-footer { width: 100%; display: flex; justify-content: space-between;}
+            .view-list .e-title { white-space: normal; margin: 10px 0; width: 100%; }
+        }
+    </style>
+</head>
+<body data-wallpaper="stone" data-accent="gold">
+
+    <canvas id="env-canvas"></canvas>
+
+    <header>
+        <div class="logo" id="portalLogo">OATH & ABYSS</div>
+        <div class="header-tools">
+            <input type="text" id="searchInput" class="search-input" placeholder="事象を検索...">
+            <button class="hdr-icon" id="toggleView" title="表示切替">☷</button>
+            <div class="audio-ctrl">
+                <span class="hdr-icon" style="font-size:1rem; cursor:default;">🔊</span>
+                <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.1" value="0.3">
+            </div>
+            <button class="hdr-icon" id="notiToggle" title="神託">🔔</button>
+            <button class="hdr-icon" id="settingsToggle" title="設定">⚙</button>
+        </div>
+    </header>
+
+    <nav class="nav-tabs">
+        <button class="nav-tab active" data-target="all">ALL</button>
+        <button class="nav-tab" data-target="monst">MONST</button>
+        <button class="nav-tab" data-target="dokkan">DOKKAN</button>
+    </nav>
+
+    <div class="category-filters" id="categoryFilters"></div>
+
+    <main class="dashboard">
+        <div class="event-container view-grid" id="eventGrid"></div>
+    </main>
+
+    <div class="overlay" id="sheetOverlay"></div>
+    
+    <div class="bottom-sheet" id="sheetNoti">
+        <div class="sheet-handle"></div>
+        <div class="bs-title">神託の記録</div>
+        <div id="notiList" style="text-align:center; font-size:0.85rem; color:var(--silver);">記録なし</div>
+    </div>
+
+    <div class="bottom-sheet" id="sheetSettings">
+        <div class="sheet-handle"></div>
+        <div class="bs-title">設定とデータの管理</div>
+        
+        <div style="border: 1px solid var(--accent); padding: 15px; border-radius: 8px; margin-bottom: 20px; background: rgba(0,0,0,0.5);">
+            <div style="font-size:0.9rem; color:var(--accent); margin-bottom:10px; font-weight: bold; text-align: center;">📜 詠唱暗号で事象を追加する</div>
+            <p style="font-size: 0.75rem; color: var(--silver); margin-bottom: 10px; text-align: center;">ジェネレーターでコピーした暗号をここに貼り付けてください。</p>
+            <textarea id="pasteEventData" class="sync-textarea" placeholder="ここを長押しして「ペースト」..." style="border: 2px dashed var(--accent); height: 80px;"></textarea>
+            <button class="st-btn" id="btnPasteEvent" style="width: 100%; padding: 12px; background: rgba(197, 160, 89, 0.2); color: var(--accent); border-color: var(--accent); font-size: 1rem;">暗号を解読し、データを追加する</button>
+        </div>
+
+        <div style="font-size:0.8rem; color:var(--accent); margin-bottom:5px;">異世界の銘 (Title)</div>
+        <input type="text" id="inputPortalName" class="input-text" placeholder="名前を入力...">
+
+        <div style="font-size:0.8rem; color:var(--accent); margin-bottom:5px; margin-top:15px;">機能の表示設定</div>
+        <div class="toggle-row"><span>制覇 (✅)</span><label class="switch"><input type="checkbox" id="tog-check" checked><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>優先 (📌)</span><label class="switch"><input type="checkbox" id="tog-pin" checked><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>神託 (🔔)</span><label class="switch"><input type="checkbox" id="tog-rem" checked><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>戦術 (📝)</span><label class="switch"><input type="checkbox" id="tog-memo" checked><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>共有 (📤)</span><label class="switch"><input type="checkbox" id="tog-share" checked><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>制覇済を隠す</span><label class="switch"><input type="checkbox" id="tog-hidecleared"><span class="slider"></span></label></div>
+        
+        <div style="font-size:0.8rem; color:var(--accent); margin:15px 0 5px;">装飾の表示設定</div>
+        <div class="toggle-row"><span>カウントダウン</span><label class="switch"><input type="checkbox" id="tog-count" checked><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>進行度ゲージ</span><label class="switch"><input type="checkbox" id="tog-prog" checked><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>外部リンク</span><label class="switch"><input type="checkbox" id="tog-links" checked><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>魔力の粒子</span><label class="switch"><input type="checkbox" id="tog-part" checked><span class="slider"></span></label></div>
+        
+        <div style="font-size:0.8rem; color:var(--accent); margin:15px 0 5px;">壁紙 (Wallpaper)</div>
+        <div class="st-group">
+            <button class="st-btn bg-btn" data-bg="trueblack">漆黒(OLED)</button>
+            <button class="st-btn bg-btn" data-bg="stone">石壁</button>
+            <button class="st-btn bg-btn" data-bg="magic">魔法陣</button>
+            <button class="st-btn bg-btn" data-bg="stars">星空</button>
+        </div>
+        
+        <div style="font-size:0.8rem; color:var(--accent); margin:15px 0 5px;">金属 (Accent)</div>
+        <div class="st-group">
+            <button class="st-btn acc-btn" data-acc="gold">黄金</button>
+            <button class="st-btn acc-btn" data-acc="silver">白銀</button>
+            <button class="st-btn acc-btn" data-acc="bronze">青銅</button>
+        </div>
+
+        <div style="font-size:0.8rem; color:var(--accent); margin:15px 0 5px;">異世界との同期 (データ転送)</div>
+        <textarea id="syncData" class="sync-textarea" placeholder="ここに詠唱暗号（転送コード）が生成・入力されます..."></textarea>
+        <div class="st-group">
+            <button class="st-btn" id="btnGenSync">暗号を生成 (Export)</button>
+            <button class="st-btn" id="btnImportSync">暗号を解読 (Import)</button>
+        </div>
+        <div class="st-group" style="margin-top: 5px;">
+            <button class="st-btn" id="btnJsonExport">バックアップ保存 (DL)</button>
+            <input type="file" id="fileJsonImport" style="display:none">
+            <button class="st-btn" onclick="document.getElementById('fileJsonImport').click()">バックアップ復元</button>
+        </div>
+
+        <button id="btnResetAllEvents" style="background:transparent; color:var(--danger); border:1px solid var(--danger); padding:10px; border-radius:4px; width:100%; margin-top:30px; cursor:pointer;">すべての事象を破棄する (Reset Data)</button>
+
+    </div>
+
+    <div class="bottom-sheet" id="sheetTactic">
+        <div class="sheet-handle"></div>
+        <div class="tactic-content">
+            <div class="bs-title" id="tacticTitle">戦術の書</div>
+            <textarea id="tacticText" class="tactic-textarea" placeholder="攻略パーティや目標をここに記せ..."></textarea>
+            <div id="imagePreviewArea" class="image-preview-area"></div>
+            <label class="file-input-label">
+                🖼 画像を捧げる
+                <input type="file" id="tacticImageInput" style="display:none" accept="image/*">
+            </label>
+            <button id="btnSaveTactic" style="background:var(--accent); color:#000; border:none; padding:12px; font-weight:bold; border-radius:4px; font-size:1rem; cursor:pointer; width: 100%; margin-bottom: 10px;">刻む (Save)</button>
+            <button id="btnRemoveImage" style="background:transparent; color:var(--danger); border:1px solid var(--danger); padding:10px; font-size:0.8rem; cursor:pointer; border-radius:4px; width: 100%;">画像を消去</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. 状態管理
+            const state = {
+                portalName: localStorage.getItem('oa_portal_name') || 'OATH & ABYSS',
+                tab: 'all', cat: 'all', search: '', view: localStorage.getItem('oa_view') || 'grid',
+                cleared: JSON.parse(localStorage.getItem('oa_cleared') || '[]'),
+                pinned: JSON.parse(localStorage.getItem('oa_pinned') || '[]'),
+                reminders: JSON.parse(localStorage.getItem('oa_rems') || '[]'),
+                memos: JSON.parse(localStorage.getItem('oa_memos') || '{}'),
+                wallpaper: localStorage.getItem('oa_bg') || 'stone',
+                accent: localStorage.getItem('oa_acc') || 'gold',
+                activeTacticId: null, tempImg: null
+            };
+
+            // ★ データの正規化
+            const normalizeEvent = (ev) => {
+                return {
+                    id: ev.id || `gen_${Math.random().toString(36).slice(2)}`,
+                    game: ['monst', 'dokkan'].includes(ev.game) ? ev.game : 'monst',
+                    type: ev.type || 'イベント',
+                    title: ev.title || '未知の事象',
+                    desc: ev.desc || '',
+                    start: ev.start || new Date().toISOString(),
+                    end: ev.end || new Date(Date.now() + 86400000*30).toISOString(),
+                    enemyIcon: ev.enemyIcon || ''
+                };
+            };
+
+            // ローカルストレージから読み込み、全データを正規化
+            const rawEvents = JSON.parse(localStorage.getItem('oa_events_data') || '[]');
+            let events = rawEvents.map(normalizeEvent);
+
+            // タイトル設定
+            const portalLogo = document.getElementById('portalLogo');
+            const inputPortalName = document.getElementById('inputPortalName');
+            portalLogo.innerText = state.portalName; inputPortalName.value = state.portalName;
+            inputPortalName.oninput = (e) => { state.portalName = e.target.value || 'OATH & ABYSS'; portalLogo.innerText = state.portalName; localStorage.setItem('oa_portal_name', state.portalName); };
+
+            // 2. 音響
+            const sounds = {
+                action: new Audio('https://actions.google.com/sounds/v1/water/water_leak.ogg'),
+                clear: new Audio('https://actions.google.com/sounds/v1/magic/wind_chimes.ogg'),
+                tab: new Audio('https://actions.google.com/sounds/v1/doors/wood_door_open.ogg')
+            };
+            document.getElementById('volSlider').oninput = (e) => { Object.values(sounds).forEach(a => a.volume = e.target.value); };
+            Object.values(sounds).forEach(a => a.volume = 0.3);
+            const playSE = (type='action') => { if(sounds[type]){ sounds[type].currentTime = 0; sounds[type].play().catch(()=>{}); } };
+
+            // 3. 動的ジャンルフィルター
+            const categoriesDef = {
+                all: ['すべて', 'イベント', 'ガチャ', 'クエスト', 'Zバトル', 'キャンペーン', 'コラボ'],
+                monst: ['すべて', 'イベント', 'ガチャ', 'クエスト', 'キャンペーン', 'コラボ'],
+                dokkan: ['すべて', 'イベント', 'ガチャ', 'Zバトル']
+            };
+
+            const renderCategories = () => {
+                const catContainer = document.getElementById('categoryFilters');
+                catContainer.innerHTML = '';
+                const cats = categoriesDef[state.tab] || categoriesDef.all;
+                if (!cats.includes(state.cat)) state.cat = 'all';
+
+                cats.forEach(c => {
+                    const isActive = state.cat === c || (state.cat === 'all' && c === 'すべて');
+                    const btn = document.createElement('button');
+                    btn.className = `cat-btn ${isActive ? 'active' : ''}`;
+                    btn.innerText = c;
+                    btn.onclick = (e) => {
+                        playSE('action');
+                        document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active'));
+                        e.target.classList.add('active');
+                        state.cat = c === 'すべて' ? 'all' : c;
+                        render();
+                    };
+                    catContainer.appendChild(btn);
+                });
+            };
+
+            // 4. トグル初期化
+            const features = ['check', 'pin', 'rem', 'share', 'memo', 'count', 'prog', 'links', 'part', 'hidecleared'];
+            features.forEach(f => {
+                const tog = document.getElementById(`tog-${f}`);
+                if(f === 'hidecleared') { tog.checked = localStorage.getItem(`oa_show_${f}`) === 'true'; } 
+                else {
+                    const isActive = localStorage.getItem(`oa_show_${f}`) !== 'false';
+                    tog.checked = isActive; if(!isActive) document.body.classList.add(`hide-${f}`);
+                }
+                tog.onchange = (e) => {
+                    localStorage.setItem(`oa_show_${f}`, e.target.checked);
+                    if(f === 'hidecleared') render(); else document.body.classList.toggle(`hide-${f}`, !e.target.checked);
+                };
+            });
+
+            // 画像軽量化
+            const compressImage = (file, callback) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let scale = img.width > 500 ? 500 / img.width : 1;
+                        canvas.width = img.width * scale; canvas.height = img.height * scale;
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                        callback(canvas.toDataURL('image/jpeg', 0.6)); 
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
+
+            // シート制御
+            const overlay = document.getElementById('sheetOverlay');
+            const openSheet = (id) => { overlay.classList.add('active'); document.getElementById(id).classList.add('active'); };
+            const closeSheets = () => { overlay.classList.remove('active'); document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('active')); };
+            overlay.onclick = closeSheets;
+
+            document.getElementById('settingsToggle').onclick = () => openSheet('sheetSettings');
+            document.getElementById('notiToggle').onclick = () => openSheet('sheetNoti');
+
+            const refreshImgPrev = () => { document.getElementById('imagePreviewArea').innerHTML = state.tempImg ? `<img src="${state.tempImg}">` : `<span style="color:var(--rust); font-size:0.8rem;">画像なし</span>`; };
+            document.getElementById('tacticImageInput').onchange = (e) => { if(e.target.files[0]) compressImage(e.target.files[0], (b64) => { state.tempImg = b64; refreshImgPrev(); }); };
+            document.getElementById('btnRemoveImage').onclick = () => { state.tempImg = null; refreshImgPrev(); };
+            document.getElementById('btnSaveTactic').onclick = () => {
+                if(state.activeTacticId) {
+                    state.memos[state.activeTacticId] = { text: document.getElementById('tacticText').value, img: state.tempImg };
+                    localStorage.setItem('oa_memos', JSON.stringify(state.memos)); closeSheets(); render();
+                }
+            };
+
+            // 5. レンダリング
+            const grid = document.getElementById('eventGrid');
+            const render = () => {
+                grid.innerHTML = '';
+                const hideC = document.getElementById('tog-hidecleared').checked;
+                const searchStr = state.search.toLowerCase();
+                
+                if (events.length === 0) {
+                    grid.innerHTML = `<div style="text-align:center; color:var(--silver); font-size:1rem; padding: 40px; grid-column: 1 / -1;">事象が存在しません。<br>設定パネルからJSONデータを読み込んでください。</div>`;
+                    return;
+                }
+
+                const filtered = events.filter(ev => {
+                    if (hideC && state.cleared.includes(ev.id)) return false;
+                    const tM = state.tab === 'all' || ev.game === state.tab;
+                    const cM = state.cat === 'all' || ev.type === state.cat;
+                    const sM = ev.title.toLowerCase().includes(searchStr) || ev.desc.toLowerCase().includes(searchStr);
+                    return tM && cM && sM;
+                });
+
+                filtered.sort((a,b) => {
+                    const aC = state.cleared.includes(a.id) ? 1 : 0; const bC = state.cleared.includes(b.id) ? 1 : 0;
+                    if(aC !== bC) return aC - bC; 
+                    const aP = state.pinned.includes(a.id) ? 0 : 1; const bP = state.pinned.includes(b.id) ? 0 : 1;
+                    if(aP !== bP) return aP - bP; 
+                    return new Date(a.end) - new Date(b.end);
+                });
+
+                filtered.forEach(ev => {
+                    const isP = state.pinned.includes(ev.id);
+                    const isC = state.cleared.includes(ev.id);
+                    const isR = state.reminders.some(r => r.id === ev.id);
+                    const hasM = !!state.memos[ev.id];
+                    const gameClass = ev.game === 'monst' ? 'game-monst' : 'game-dokkan';
+                    const enemyHTML = ev.enemyIcon ? `<div class="enemy-shadow">${ev.enemyIcon}</div>` : '';
+                    const descHTML = ev.desc ? `<p class="e-desc">${ev.desc}</p>` : '';
+
+                    const card = document.createElement('article');
+                    card.className = `event-card ${gameClass} ${isP?'is-pinned':''} ${isC?'cleared':''}`;
+                    card.innerHTML = `
+                        ${enemyHTML}
+                        <div class="clear-mark">CLEARED</div>
+                        <div class="c-header">
+                            <span class="c-crest">【${ev.type}】${ev.game.toUpperCase()} <span class="pinned-label">PIN</span></span>
+                            <div class="c-tools">
+                                <button class="action-icon share-btn" title="共有">📤</button>
+                                <button class="action-icon memo-btn ${hasM?'active':''}" title="戦術">📝</button>
+                                <button class="action-icon rem-btn ${isR?'active':''}" title="GCal">🔔</button>
+                                <button class="action-icon pin-btn ${isP?'active':''}" title="優先">📌</button>
+                                <button class="action-icon clear-btn ${isC?'active':''}" title="制覇">✅</button>
+                            </div>
+                        </div>
+                        <h3 class="e-title">${ev.title}</h3>
+                        ${descHTML}
+                        <div class="q-links"><a href="#" class="q-link">公式サイト</a><a href="#" class="q-link">攻略Wiki</a></div>
+                        <div class="e-footer">
+                            <div class="c-countdown" data-start="${ev.start}" data-end="${ev.end}"></div>
+                            <div class="progress-track"><div class="progress-fill"></div></div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+
+                    card.querySelector('.clear-btn').onclick = () => { playSE('clear'); toggleArr('oa_cleared', state.cleared, ev.id); render(); };
+                    card.querySelector('.pin-btn').onclick = () => { playSE(); toggleArr('oa_pinned', state.pinned, ev.id); render(); };
+                    
+                    card.querySelector('.memo-btn').onclick = () => {
+                        playSE(); state.activeTacticId = ev.id;
+                        const d = state.memos[ev.id] || { text: '', img: null };
+                        document.getElementById('tacticTitle').innerText = ev.title; document.getElementById('tacticText').value = d.text;
+                        state.tempImg = d.img; refreshImgPrev(); openSheet('sheetTactic');
+                    };
+
+                    card.querySelector('.rem-btn').onclick = (e) => {
+                        playSE();
+                        if(!isR) { state.reminders.push({id: ev.id, title: ev.title, end: ev.end}); localStorage.setItem('oa_rems', JSON.stringify(state.reminders)); e.target.classList.add('active'); renderNoti(); }
+                        const fD = d => new Date(d).toISOString().replace(/-|:|\.\d\d\d/g, "");
+                        const a = document.createElement('a'); a.href = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(ev.title)}&details=${encodeURIComponent(ev.desc)}&dates=${fD(ev.start)}/${fD(ev.end)}`; a.target = '_blank';
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    };
+
+                    card.querySelector('.share-btn').onclick = async () => {
+                        playSE(); const txt = `【${ev.game.toUpperCase()}】${ev.title}\n終了: ${ev.end.split('T')[0]}`;
+                        if(navigator.share) { try{ await navigator.share({text: txt}); }catch(e){} } else { navigator.clipboard.writeText(txt); alert("コピー完了"); }
+                    };
+                });
+                updateCounters();
+            };
+
+            function toggleArr(k, a, id) { const i=a.indexOf(id); if(i>-1) a.splice(i,1); else a.push(id); localStorage.setItem(k, JSON.stringify(a)); }
+
+            // カウントダウン
+            const updateCounters = () => {
+                const now = new Date();
+                document.querySelectorAll('.c-countdown').forEach(el => {
+                    const s = new Date(el.dataset.start), e = new Date(el.dataset.end), diff = e - now;
+                    const fill = el.nextElementSibling?.querySelector('.progress-fill');
+                    if(fill) { let p = 0; if(now >= e) p = 100; else if (now > s) p = ((now - s) / (e - s)) * 100; fill.style.width = p + '%'; }
+                    if(diff <= 0) { el.innerText = "ENDED"; el.classList.remove('danger-pulse'); if(fill) fill.classList.remove('danger'); return; }
+                    const d = Math.floor(diff/864e5), h = Math.floor(diff/36e5%24), m = Math.floor(diff/6e4%60), sec = Math.floor(diff/1e3%60);
+                    el.innerText = `${d}d ${h}:${m}:${sec}`;
+                    if(d === 0) { el.classList.add('danger-pulse'); if(fill) fill.classList.add('danger'); } else { el.classList.remove('danger-pulse'); if(fill) fill.classList.remove('danger'); }
+                });
+            };
+            setInterval(updateCounters, 1000);
+
+            // UI Events
+            document.getElementById('searchInput').oninput = (e) => { state.search = e.target.value; render(); };
+            document.getElementById('toggleView').onclick = () => { state.view = state.view === 'grid' ? 'list' : 'grid'; localStorage.setItem('oa_view', state.view); grid.className = `event-container view-${state.view}`; };
+
+            document.querySelectorAll('.nav-tab').forEach(t => {
+                t.onclick = (e) => {
+                    playSE('tab'); document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+                    e.target.classList.add('active'); state.tab = e.target.dataset.target;
+                    renderCategories(); // ジャンル動的切り替え
+                    render();
+                };
+            });
+
+            const applySettings = () => {
+                document.body.setAttribute('data-wallpaper', state.wallpaper); document.body.setAttribute('data-accent', state.accent);
+                document.querySelectorAll('.bg-btn').forEach(b => b.classList.toggle('active', b.dataset.bg === state.wallpaper));
+                document.querySelectorAll('.acc-btn').forEach(b => b.classList.toggle('active', b.dataset.acc === state.accent));
+            };
+            document.querySelectorAll('.bg-btn').forEach(b => b.onclick = (e) => { state.wallpaper = e.target.dataset.bg; localStorage.setItem('oa_bg', state.wallpaper); applySettings(); });
+            document.querySelectorAll('.acc-btn').forEach(b => b.onclick = (e) => { state.accent = e.target.dataset.acc; localStorage.setItem('oa_acc', state.accent); applySettings(); });
+
+            const renderNoti = () => {
+                const nl = document.getElementById('notiList');
+                nl.innerHTML = state.reminders.length === 0 ? '<div style="text-align:center; color:var(--silver);">記録なし</div>' : '';
+                state.reminders.forEach(r => { nl.innerHTML += `<div class="rem-item">⏳ ${r.end.split('T')[0]}<br>${r.title} <button class="rem-del" data-id="${r.id}">×</button></div>`; });
+                document.querySelectorAll('.rem-del').forEach(btn => btn.onclick = (e) => { state.reminders = state.reminders.filter(rm => rm.id !== e.target.dataset.id); localStorage.setItem('oa_rems', JSON.stringify(state.reminders)); renderNoti(); render(); });
+            };
+
+            // ★ コピペ（暗号）によるデータの追加＆マージ機能 ★
+            document.getElementById('btnPasteEvent').onclick = () => {
+                const code = document.getElementById('pasteEventData').value.trim();
+                if (!code) { alert("暗号が入力されていません。"); return; }
+                try {
+                    const data = JSON.parse(decodeURIComponent(atob(code)));
+                    if(Array.isArray(data)) {
+                        const newEvents = data.map(normalizeEvent);
+                        newEvents.forEach(newEv => {
+                            const existingIdx = events.findIndex(e => e.id === newEv.id);
+                            if (existingIdx > -1) events[existingIdx] = newEv; // 上書き
+                            else events.push(newEv); // 追記
+                        });
+                        localStorage.setItem('oa_events_data', JSON.stringify(events));
+                        renderCategories(); render(); closeSheets();
+                        playSE('action');
+                        document.getElementById('pasteEventData').value = ''; // 入力欄をクリア
+                        alert("新たな事象をリストに合流（マージ）しました！");
+                    } else {
+                        alert("暗号の形式が異なります。");
+                    }
+                } catch(e) { alert("暗号の解読に失敗しました。正しい文字列か確認してください。"); }
+            };
+
+            // ★ 全データ初期化ボタン ★
+            document.getElementById('btnResetAllEvents').onclick = () => {
+                if(confirm("本当にすべての事象データを破棄しますか？\n（※クリア状態やメモ、ピン留めなどの記録もすべて初期化されます）")) {
+                    events = [];
+                    state.cleared = []; state.pinned = []; state.reminders = []; state.memos = {};
+                    
+                    localStorage.setItem('oa_events_data', '[]');
+                    localStorage.setItem('oa_cleared', '[]');
+                    localStorage.setItem('oa_pinned', '[]');
+                    localStorage.setItem('oa_rems', '[]');
+                    localStorage.setItem('oa_memos', '{}');
+                    
+                    renderCategories();
+                    renderNoti();
+                    render();
+                    closeSheets();
+                    alert("世界は初期化されました。");
+                }
+            };
+
+            // Canvas Effect
+            const cvs = document.getElementById('env-canvas'), ctx = cvs.getContext('2d'); let ps = [];
+            const resize = () => { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }; window.onresize = resize; resize();
+            class P { constructor() { this.x = Math.random()*cvs.width; this.y = Math.random()*cvs.height; this.v = Math.random()*0.3+0.1; } up() { this.y -= this.v; if(this.y<0) this.y=cvs.height; } dr() { const cMap = { 'gold':'197,160,89', 'silver':'176,190,197', 'bronze':'205,127,50' }; ctx.fillStyle = `rgba(${cMap[state.accent]},0.2)`; ctx.beginPath(); ctx.arc(this.x,this.y,1,0,7); ctx.fill(); } }
+            for(let i=0; i<50; i++) ps.push(new P());
+            const anim = () => { ctx.clearRect(0,0,cvs.width,cvs.height); ps.forEach(p=>{p.up();p.dr();}); requestAnimationFrame(anim); };
+
+            // Initialize
+            applySettings(); renderCategories(); grid.className = `event-container view-${state.view}`; renderNoti(); render(); anim();
+        });
+    </script>
+</body>
+</html>
